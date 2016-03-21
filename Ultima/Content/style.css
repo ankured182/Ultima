@@ -1,0 +1,17 @@
+﻿body {
+}
+
+
+#miniCart .miniCartContent {
+    background-color: #b6ff00;
+    box-shadow: 1px 1px 4px 0 #666;
+    padding: 1.25em;
+    position: absolute;
+    right: 0;
+    width: 21.25em;
+    z-index: 200;
+}
+
+#miniCart .checkoutMiniCart {
+    padding-top: 0.0625em;
+}

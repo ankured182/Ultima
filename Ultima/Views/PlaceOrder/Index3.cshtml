@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    @*<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>*@
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>*@
+
+    @*<script src="~/Scripts/bootstrap.js"></script>*@
+    @*<link href="~/Content/bootstrap.css" rel="stylesheet" />*@
+    @*<link href="~/Content/style.css" rel="stylesheet" />*@
+</head>
+<body>
+    <h1>Shopping Cart</h1>
+
+    <div style="align-content:center">
+        <code>
+            I was lucky enough to get started working on websites in the early 2000s. This was a time when the internet was just starting to grow. This gave me the opportunity to be part of a very exciting period when things were changing really fast online. And you know what? It hasn’t slowed down since then. Technology keeps changing at a rapid pace. I have seen things come and go, but one of the things that’s stuck around without changing too much is blogging. People love to share their thoughts and ideas, and other people love to read them. - See more at: http://www.theblogstarter.com/about-me/#sthash.BpQ20ix2.dpuf
+
+        </code>
+
+    </div>
+
+    <label id="myLabel" for="male">Male</label>
+
+
+    <div id="miniCart" class="miniCart"
+         style="background-color:rgb(0,0,0);">
+        <!--<div class="miniCartContent">
+            <div class="checkoutMiniCart" style="height: auto; overflow: hidden;">
+                <h4>Your Cart</h4>
+            </div>
+        </div>-->
+    </div>
+
+    <div>
+        <ul>
+            <li><a class="add-to-cart" href="#" data-id="1" data-name="Apple" data-price="1.22"> Apple $1.22</a></li>
+            <li><a class="add-to-cart" href="#" data-id="2" data-name="Mango" data-price="4.50"> Mango $4.50</a></li>
+
+            <li><a class="add-to-cart" href="#" data-id="3" data-name="Grape" data-price="3.3">Grape $3</a></li>
+            <li><a class="add-to-cart" href="#" data-id="4" data-name="Jackfruit" data-price="9"> JackFruit $9</a></li>
+        </ul>
+        <button id="clear-cart">Clear Cart</button>
+    </div>
+
+    <div>
+        <ul id="show-cart">
+            <li>
+
+            </li>
+        </ul>
+        <div>Total :$ <span id="total-cart"></span></div>
+    </div>
+    <div class="container">
+
+        <div class="col-sm-2">
+            <table class='table table-striped'>
+                <tr>
+                    <th>Head 1</th>
+                    <th>2</th>
+                    <th>3</th>
+                </tr>
+
+                <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                </tr>
+
+            </table>
+        </div>
+
+    </div>
+
+
+
+    <script>
+        //********SHFUNVTION-----------
+
+        $("#myLabel").click(function (event) {
+
+            var labelText = $("#myLabel").text()
+
+            //$(".showCart").html == "333"
+            if (labelText == "Male") {
+                console.log('My JavaScript');
+
+                var output = " <div class='miniCartContent'><div class='checkoutMiniCart' style='height: auto; overflow: hidden;'><h4>Your Cart</h4> </div></div>";
+                $("#miniCart").html(output);
+
+                $("#myLabel").text("Female");
+            }
+
+            else {
+                console.log('My nu');
+                $("#myLabel").html();
+
+                var output = "";
+                $("#miniCart").html(output);
+                $("#myLabel").text("Male");
+
+            }
+
+        });
+
+
+
+        $(".add-to-cart").click(function (event) {
+            event.preventDefault();
+
+            console.log("Test HERE ");
+            var id = Number($(this).attr("data-id"));
+            var name = $(this).attr("data-name");
+            var price = Number($(this).attr("data-price"));
+
+            addItemToCart(id, name, price, 1);
+            displayCart();
+        });
+
+        $("#clear-cart").click(function (event) {
+            clearCart();
+            displayCart();
+        });
+
+        $("#show-cart").on("click", ".delete-item", function (event) {
+            var id = parseInt($(this).attr("data-id"));
+            removeItemFromCartAll(id);
+            displayCart();
+        })
+
+        $("#show-cart").on("click", ".subtract-item", function (event) {
+            var id = parseInt($(this).attr("data-id"));
+            removeItemFromCart(id);
+            displayCart();
+        })
+
+
+        $("#show-cart").on("click", ".plus-item", function (event) {
+            var id = parseInt($(this).attr("data-id"));
+            addItemToCartInd(id, 1);
+            displayCart();
+        })
+
+
+
+
+
+        function displayCart() {
+            var cartArray = listCart();
+            var output = "<div width='200px'><table class='table table-striped' >";
+
+            for (var i in cartArray) {
+                output += "<tr>"
+                    + "<td>" + cartArray[i].id + "</td><td> "
+                    + cartArray[i].name + "</td><td> "
+                    + cartArray[i].count
+                    + " x " + cartArray[i].price + "</td><td>"
+                    + " " + cartArray[i].total + "</td><td>"
+                    + "<button class='plus-item' data-id='" + cartArray[i].id + "'>+</button>"
+                    + "<button class='subtract-item' data-id='" + cartArray[i].id + "'>-</button>"
+                    + "<button class='delete-item' data-id='" + cartArray[i].id + "'>X</button>"
+                    + "</td></tr></div>";
+            }
+            output += "</table>"
+            $("#show-cart").html(output);
+            $("#total-cart").html(totalCart());
+        }
+
+
+        $("#show-cart").on("click", ".delete-item", function (event) {
+            var id = parseInt($(this).attr("data-id"));
+            removeItemFromCartAll(id);
+            displayCart();
+        })
+
+        $("#show-cart").on("click", ".subtract-item", function (event) {
+            var id = parseInt($(this).attr("data-id"));
+            removeItemFromCart(id);
+            displayCart();
+        })
+
+
+        $("#show-cart").on("click", ".plus-item", function (event) {
+
+           
+
+            var id = parseInt($(this).attr("data-id"));
+            addItemToCartInd(id, 1);
+            displayCart();
+        })
+
+
+
+        var cart = [];
+        var Item = function (id, name, price, count) {
+            this.id = id;
+            this.name = name;
+            this.price = price;
+            this.count = count;
+        };
+
+        function addItemToCartInd(id, count) {
+            for (var i in cart) {
+                if (cart[i].id === id) {
+                    cart[i].count += count;
+                    saveCart();
+                    return;
+                }
+            }
+        }
+
+        function addItemToCart(id, name, price, count) {
+            for (var i in cart) {
+                if (cart[i].id === id) {
+                    cart[i].count += count;
+                    saveCart();
+                    return;
+                }
+            }
+
+            var item = new Item(id, name, price, count);
+            cart.push(item);
+            saveCart();
+        }
+
+
+        function removeItemFromCart(id) {
+            //removes one item
+            for (var i in cart) {
+                if (cart[i].id === id) {
+                    cart[i].count -= 1;
+                    if (cart[i].count === 0) {
+                        cart.splice(i, 1);
+                    }
+                    break;
+                }
+            }
+            saveCart();
+        }
+
+        function removeItemFromCartAll(id) {
+            //removes all item id
+            var x = "nnn" + id;
+            console.log(x);
+            for (var i in cart) {
+                console.log(cart[i].id);
+                console.log(id);
+                if (cart[i].id === id) {
+                    console.log("reached  here");
+                    cart.splice(i, 1);
+                    break;
+                }
+
+            }
+
+            saveCart();
+        }
+
+        //addItemToCart(1, "Apple", 1.22, 1);
+        //addItemToCart(1, "Apple", 1.22, 1);
+        //addItemToCart(2, "Pear", 444, 4);
+
+        function clearCart() {
+            cart = [];
+            saveCart();
+        }
+
+        function countCart() {
+            //->return total count
+            var totalcount = 0;
+            for (var i in cart) {
+                totalcount += cart[i].count;
+            }
+            return totalcount;
+        }
+
+
+        function totalCart() {
+            //->return total cost
+            var totalCost = 0;
+            for (var i in cart) {
+                totalCost += cart[i].price * cart[i].count;
+            }
+            return totalCost.toFixed(2);
+        }
+        // console.log(totalCart());
+
+        function listCart()
+        {
+            //->array of item
+            var cartCopy = [];
+            for (var i in cart)
+            {
+                var item = cart[i];
+                var itemCopy = {};
+                for (var p in item)
+                {
+                    itemCopy[p] = item[p];
+                }
+                itemCopy.total = (item.price * item.count).toFixed(2);
+                cartCopy.push(itemCopy);
+            }
+            return cartCopy;
+        }
+
+        function saveCart() {
+            console.log("save");
+            // localStorage.setItem("shoppingCart", JSON.stringify(cart))
+            $.cookie("shoppingCart", JSON.stringify(cart));
+
+
+        }
+
+        function loadCart() {
+            console.log("Load");
+            //cart = JSON.parse(localStorage.getItem("shoppingCart"));
+            cart = $.parseJSON($.cookie("shoppingCart"));
+        }
+
+        loadCart();
+        displayCart();
+        //var array = listCart();
+        //console.log("ankur");
+        //console.log(array);
+
+    </script>
+</body>
+</html>

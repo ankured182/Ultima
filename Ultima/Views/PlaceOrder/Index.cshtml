@@ -1,0 +1,487 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h3>Prepare Quotation</h3>
+<hr />
+<div class="container" style="max-width:640px">
+    <div class="master">
+        <table>
+            <tr>
+                <td>Order No:</td>
+                <td>
+                    <input type="text" id="orderNo" />
+                    @*<span class="error"> Order No Reqiured</span>*@
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="details">
+        <table>
+            <tr>
+                <td>Part No:</td>
+                <td>Quantity:</td>
+                <td>&nbsp;</td>
+
+            </tr>
+            <tr>
+                <td>
+                    <input type="text" id="itemName" />
+                </td>
+                <td>
+                    <input type="text" id="qty" style="width:60px" />
+                </td>
+                <td>
+                    <input type="button" id="add" value="add" />
+                </td>
+            </tr>
+        </table>
+        <br />
+        <div align="center">
+            <ul id="show-cart">
+                <li>
+
+                </li>
+            </ul>
+            <div>Total :$ <span id="total-cart"></span></div>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <td colspan="2">
+                        <div id="msg">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="orderItems" class="tablecontainer">
+        </div>
+
+        <div style="padding:10px 0px;text-align:right">
+            <input id="submit" type="button"  value="Submit" style="padding:2px 5px ;width:80px" />
+        </div>
+
+    </div>
+   
+
+</div>
+
+@*<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+
+@section Scripts{
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+@*<script src="~/Scripts/jquery-1.10.2.js"></script>*@
+
+    <script>
+        $(document).ready(function () {
+            var orderItems = [];
+            var cart = [];
+            var Item = function (id, name, price, count,total) {
+                this.id = id;
+                this.name = name;
+                this.price = price;
+                this.count = count;
+                this.total = total;
+            };
+
+            //Add button click function
+            $('#add').click(function () {
+
+                var isValidItem = false;
+                if ($('#itemName').val().trim() == '') {
+
+                    $('#itemName').siblings('span.error').css('visibility', 'visible');
+
+                }
+                else {
+                    isValidItem = true;
+                    $('#itemName').siblings('span.error').css('visibility', 'hidden');
+
+                }
+                if (isValidItem) {
+
+                    if ($('#qty').val().trim() == '')
+                    {
+                        isValidItem = false;
+                        $('#qty').siblings('span.error').css('visibility', 'visible');
+                    }
+                    else
+                    {
+                        isValidItem = true;
+                        $('#qty').siblings('span.error').css('visibility', 'hidden');
+                    }
+
+                    if (isValidItem)
+                    {
+                        console.log("hhhhhh");
+                        var data = {
+                            ItemName: $('#itemName').val().trim(),
+                        }
+                        $.ajax({
+                            url: 'GetPrice',
+                            type: "POST",
+                            data: JSON.stringify(data),
+                            dataType: "JSON",
+                            contentType: "application/json",
+                            success: function (d) {
+                                //Check is saved to DB
+                                if (d.status == true)
+                                {
+                                    // console.log("hhhhhhhhhhhhhhhhhhh");
+                                    //$('#msg').html('Success');
+                                    //$('#msg').html(d.returnVal);
+                                    //alert('Successfully done');
+                                    addItemToCart( parseInt(d.partSupId), $('#itemName').val().trim(), d.returnVal, parseInt($('#qty').val().trim()), parseFloat(d.returnVal) * parseInt($('#qty').val().trim()));
+
+                                    //orderItems.push({
+                                    //    PartSupId: d.partSupId,
+                                    //    ItemName: $('#itemName').val().trim(),                                       
+                                    //    Price: d.returnVal,
+                                    //    Qty: $('#qty').val().trim(),
+                                    //    Total: parseFloat(d.returnVal) * parseInt($('#qty').val().trim())
+                                    //});
+
+                                    $('#itemName').val('').focus();
+                                    $('#qty').val('');
+
+                                    displayCart();
+                                    //GeneratedItemsTable();
+                                }
+                                else {
+                                    alert('This item is not available');
+                                }
+                            },
+                            error: function ()
+                            {
+                                alert('Error.Please Try again');
+                            }
+                        })
+                    }
+                }
+            }
+            )
+
+            function addItemToCart(id, name, price, count, total) {
+
+                console.log("ankur99999");
+                console.log(id);
+                console.log(price);
+                console.log(count);
+                console.log(total);
+
+                for (var i in cart) {
+                    if (cart[i].id === id) {
+                        cart[i].count += count;
+                        cart[i].total = (price * cart[i].count);
+                        saveCart();
+                        return;
+                    }
+                }
+
+                var item = new Item(id, name, price, count,total);
+                cart.push(item);
+                saveCart();
+            }
+
+            $("#show-cart").on("click", ".delete-item", function (event) {
+                var id = parseInt($(this).attr("data-id"));
+                removeItemFromCartAll(id);
+                displayCart();
+            })
+
+            $("#show-cart").on("click", ".subtract-item", function (event) {
+                var id = parseInt($(this).attr("data-id"));
+                removeItemFromCart(id);
+                displayCart();
+            })
+
+            $("#show-cart").on("click", ".plus-item", function (event) {
+                console.log("Addition Success");
+                var id = parseInt($(this).attr("data-id"));
+                console.log(id);
+               
+                addItemToCartInd(id, 1);
+                displayCart();
+            })
+
+
+            function addItemToCartInd(id, count)
+            {
+               
+                for (var i in cart)
+                {
+
+                    if (parseInt(cart[i].id) === parseInt(id))
+                    {
+                        cart[i].count += count;
+                        cart[i].total = cart[i].count * cart[i].price
+                        saveCart();
+                        return;
+                    }
+                }
+            }
+
+            //function addItemToCart(id, name, price, count) {
+            //    for (var i in cart) {
+            //        if (cart[i].id === id) {
+            //            cart[i].count += count;
+            //            saveCart();
+            //            return;
+            //        }
+            //    }
+
+            //    var item = new Item(id, name, price, count);
+            //    cart.push(item);
+            //    saveCart();
+            //}
+
+            function removeItemFromCart(id) {
+                //removes one item
+                for (var i in cart) {
+                    if (parseInt(cart[i].id) === parseInt(id)) {
+                        cart[i].count -= 1;
+                        cart[i].total = cart[i].count * cart[i].price;
+                        if (cart[i].count === 0) {
+                            cart.splice(i, 1);
+                        }
+                        break;
+                    }
+                }
+                saveCart();
+            }
+
+            function removeItemFromCartAll(id) {
+                //removes all item id
+                var x = "nnn" + id;
+                console.log(x);
+                for (var i in cart) {
+                    console.log(cart[i].id);
+                    console.log(id);
+                    if (parseInt(cart[i].id) === parseInt(id)) {
+                        console.log("reached  here");
+                        cart.splice(i, 1);
+                        break;
+                    }
+
+                }
+
+                saveCart();
+            }
+
+            function clearCart() {
+                cart = [];
+                saveCart();
+            }
+
+            function countCart() {
+                //->return total count
+                var totalcount = 0;
+                for (var i in cart) {
+                    totalcount += cart[i].count;
+                }
+                return totalcount;
+            }
+
+            function saveCart() {
+                console.log("save");
+                // localStorage.setItem("shoppingCart", JSON.stringify(cart))
+                $.cookie("shoppingCart", JSON.stringify(cart));
+            }
+
+            function displayCart() {
+                var cartArray = listCart();
+                var output = "<div width='200px' align='center'><table class='table table-striped' > <th>Sl</th><th>Part No</th><th>Qty X Price</th><th>Total</th><th>Options</th>";
+
+                for (var i in cartArray) {
+                    var index = parseInt(i) + 1;
+                    console.log(i);
+                    output += "<tr>"
+                        + "<td>" +index + "</td> "
+                        + "<td> "
+                        + cartArray[i].name + "</td><td> "
+                        + cartArray[i].count
+                        + " x " + cartArray[i].price + "</td><td>"
+                        + " " + cartArray[i].total + "</td><td>"
+                        + "<button class='plus-item' data-id='" + cartArray[i].id + "'>+</button>"
+                        + "<button class='subtract-item' data-id='" + cartArray[i].id + "'>-</button>"
+                        + "<button class='delete-item' data-id='" + cartArray[i].id + "'>X</button>"
+                        + "</td></tr></div>";
+                }
+                output += "</table>";
+
+                if (cartArray.length > 0) {
+                    $("#show-cart").html(output);
+                    $("#total-cart").html(totalCart());
+                }
+                else
+                {
+                    $("#show-cart").html('');
+                    $("#total-cart").html('');
+                }
+            }
+
+            function totalCart() {
+                //->return total cost
+                var totalCost = 0;
+                for (var i in cart) {
+                    totalCost += cart[i].price * cart[i].count;
+                }
+                return totalCost.toFixed(2);
+            }
+
+
+            function listCart()
+            {
+                //->array of item
+                var cartCopy = [];
+                for (var i in cart)
+                {                  
+                    var item = cart[i];
+                    var itemCopy = {};
+                    for (var p in item)
+                    {
+                        itemCopy[p] = item[p];
+                    }
+                    cartCopy.push(itemCopy);
+                }
+                return cartCopy;
+            }
+
+
+            $('#submit').click(function () {//validation
+                var isAllValid = true;
+                if (cart.length == 0)
+                {
+                    $('#orderItems').html('<span style="color:red;">Add Order Items</span>')
+                    isAllValid = false;
+                }
+                //Save if Valid
+                var nuCart = [];
+                var ItemPart = function (ItemName,Qty)
+                {                   
+                    this.ItemName = ItemName;
+                    this.Qty = Qty;
+                };
+
+                //var cartCopy = [];
+                //for (var i in cart)
+                //{
+                //    var item = cart[i];
+                //    var itemCopy = {};
+                //    for (var p in item)
+                //    {
+                //        itemCopy[p] = item[p];
+                //    }
+                //    cartCopy.push(itemCopy);
+                //}
+
+                for (var i in cart)
+                {
+                    var itemPart = new ItemPart(i.name, i.count);
+                    nuCart.push(itemPart);                    
+                }
+
+                if (isAllValid)
+                {
+                    console.log("MyMSSSSG");
+                    var data = {
+                        OrderNo: $('#orderNo').val().trim(),
+                        OrdDetails: nuCart
+                    }
+                    $('#msg').html('Please Wait..');
+                    
+                    $.ajax({
+                        url: 'SaveOrder',
+                        type: "POST",
+                        data: JSON.stringify(data),
+                        dataType: "JSON",
+                        contentType: "application/json",
+                        success: function (d)
+                        {
+                            //Check is saved to DB
+                            if (d.status == true)
+                            {
+                                clearCart();
+                                displayCart();
+                                // console.log("hhhhhhhhhhhhhhhhhhh");
+                                $('#msg').html('Success');
+                                //$('#msg').html(d.returnVal);
+                                alert('Successfully done');
+
+                                $('#orderNo').val('');
+                              
+                               // $('#orderItems').empty();   
+                            }
+                            else
+                            {
+                                alert('Failed To save');
+                            }
+                        },
+                        error: function () {
+                            alert('Error.Please Try again');
+                        }
+                    }
+                 )
+                }
+            })
+
+            //save button click function
+
+            //function to show added Items in Table
+            function GeneratedItemsTable() {
+                if (orderItems.length > 0) {
+                    var $table = $('<table/>');
+                    $table.append('<thead><tr><th>PartSupId</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>')
+                    var $tbody = $('<tbody/>');
+
+                    $.each(orderItems, function (i, val) {
+                        var $row = $('<tr/>');
+                        $row.append($('<td/>').html(val.PartSupId));
+                        $row.append($('<td/>').html(val.ItemName));
+                        $row.append($('<td/>').html(val.Qty));
+                        $row.append($('<td/>').html(val.Price));
+                        $row.append($('<td/>').html(val.Total));
+                        
+                        $tbody.append($row);
+
+                    });
+                    $table.append($tbody);
+                    $('#orderItems').html($table);
+                }
+            }
+
+            function GeneratedItemsTable2() {
+                if (orderItems.length > 0) {
+                    var $table = $('<table/>');
+                    $table.append('<thead><tr><th>Item</th><th>Qty</th></tr></thead>')
+                    var $tbody = $('<tbody/>');
+
+                    $.each(orderItems, function (i, val) {
+                        var $row = $('<tr/>');
+                        $row.append($('<td/>').html(val.ItemName));
+                        $row.append($('<td/>').html(val.Qty));
+                        $tbody.append($row);
+
+                    });
+                    $table.append($tbody);
+                    $('#orderItems').html($table);
+                }
+            }
+
+            function loadCart()
+            {
+                //cart = JSON.parse(localStorage.getItem("shoppingCart"));
+                cart = $.parseJSON($.cookie("shoppingCart"));
+
+            }
+            loadCart();
+            displayCart();
+
+        }
+            )
+    </script>
+
+
